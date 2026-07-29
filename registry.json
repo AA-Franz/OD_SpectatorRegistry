@@ -36,6 +36,12 @@
       "displayName": "Advanced Animator",
       "author": "glowmonster",
       "url": "https://github.com/glowmonster-goated/OD_AdvancedAnimator"
+    },
+    {
+      "name": "entityb.custommodels",
+      "displayName": "Custom Models",
+      "author": "EntityB",
+      "url": "https://github.com/Entity-B/CustomModels"
     }
   ]
 }
