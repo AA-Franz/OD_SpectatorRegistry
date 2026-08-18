@@ -42,6 +42,12 @@
       "displayName": "Custom Models",
       "author": "Entity_B",
       "url": "https://github.com/Entity-B/CustomModels"
+    },
+    {
+      "name": "august.procam",
+      "displayName": "procam",
+      "author": "august!",
+      "url": "https://github.com/higuysimaugust/procam"
     }
   ]
 }
