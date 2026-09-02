@@ -43,4 +43,4 @@ Every pull request is checked automatically by the [`Check Formatting and Schema
 - **Registry Schema:** `registry.json` must validate against `src/registry.schema.json`
 - **Your package.json Schemae:** Your camera script's `package.json` must validate against `src/package.schema.json`
 
-You can run these checks locally with `npm run check` before opening your PR to make sure they pass.
+You can run these checks locally with `npm run validate` before opening your PR to make sure they pass.
