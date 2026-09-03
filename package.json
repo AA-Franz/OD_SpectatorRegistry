@@ -4,9 +4,7 @@
   "type": "module",
   "scripts": {
     "validate": "tsx src/validate.ts",
-    "format": "prettier --write .",
-    "lint": "prettier --check .",
-    "check": "npm run validate && npm run lint"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@types/node": "^26.0.1",

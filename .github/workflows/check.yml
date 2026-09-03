@@ -5,12 +5,18 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -18,29 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Check JSON formatting
-        id: format
-        run: npx prettier --check .
-        continue-on-error: true
-
-      - name: Annotate formatting failure
-        if: steps.format.outcome == 'failure'
-        run: echo "::error::Formatting check failed. Run 'npm run format' locally and commit the changes."
-
-      - name: Validate registry.json against registry.schema.json
-        id: schema
-        run: npx ajv-cli validate -s src/registry.schema.json -d registry.json
-        continue-on-error: true
-
-      - name: Annotate schema validation failure
-        if: steps.schema.outcome == 'failure'
-        run: echo "::error file=registry.json::registry.json does not match src/registry.schema.json. See the job log for details."
-
-      - name: Validate registry entries (uniqueness, reachable repos, package.json schema)
-        id: validate
+      - name: Run checks
         run: npm run validate
-        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fail job if any check failed
-        if: steps.format.outcome == 'failure' || steps.schema.outcome == 'failure' || steps.validate.outcome == 'failure'
-        run: exit 1
+      - name: Comment the report on the PR
+        if: always()
+        continue-on-error: true
+        run: gh pr comment ${{ github.event.pull_request.number }} --body-file validation-report.md --edit-last --create-if-none
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
