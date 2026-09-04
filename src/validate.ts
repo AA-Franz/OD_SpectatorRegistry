@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
 import Ajv from "ajv";
 
 const MAX_REPO_BYTES = 10 * 1024 * 1024;
@@ -28,7 +28,13 @@ const validateRegistry = ajv.compile<{ scripts: Script[] }>(
   JSON.parse(readFileSync("src/registry.schema.json", "utf8")),
 );
 
-const validateManifest = ajv.compile<{ main: string }>(
+type PackageSchema = {
+  name: string;
+  main: string;
+  url: string;
+};
+
+const validateManifest = ajv.compile<PackageSchema>(
   JSON.parse(readFileSync("src/package.schema.json", "utf8")),
 );
 
@@ -89,7 +95,10 @@ async function main() {
   }
 
   if (onCi) {
-    writeFileSync("validation-report.md", buildReport(checks, entries));
+    appendFileSync(
+      process.env.GITHUB_STEP_SUMMARY!,
+      buildReport(checks, entries),
+    );
   }
 
   if (failed.length > 0) {
@@ -152,13 +161,17 @@ async function checkRepo(script: Script, check: Check): Promise<Entry> {
     return entry;
   }
 
-  const meta = await getJson<{ license: { spdx_id: string } | null }>(
+  const metaResponse = await fetchGitHub(
     `repos/${repo}`,
+    "application/vnd.github+json",
   );
-  if (!meta) {
-    fail(`unreachable: ${script.url}`);
+  if (!metaResponse.ok) {
+    fail(`unreachable (HTTP ${metaResponse.status}): ${script.url}`);
     return entry;
   }
+  const meta = (await metaResponse.json()) as {
+    license: { spdx_id: string } | null;
+  };
 
   entry.license = meta.license?.spdx_id ?? null;
   if (entry.license === null || entry.license === "NOASSERTION") {
@@ -202,6 +215,15 @@ async function checkRepo(script: Script, check: Check): Promise<Entry> {
       fail(`package.json ${error.instancePath || "/"} ${error.message}`);
     }
     return entry;
+  }
+
+  if (manifest.name.toLowerCase() !== script.name.toLowerCase()) {
+    fail(`package.json name "${manifest.name}" does not match the registry`);
+  }
+  const manifestRepo = parseRepo(manifest.url);
+  const scriptRepo = parseRepo(script.url);
+  if (manifestRepo !== scriptRepo) {
+    fail(`package.json url "${manifest.url}" does not match the registry`);
   }
 
   if (!(await getFile(repo, manifest.main))) {

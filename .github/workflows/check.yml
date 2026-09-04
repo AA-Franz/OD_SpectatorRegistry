@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   validate:
@@ -28,10 +27,3 @@ jobs:
         run: npm run validate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Comment the report on the PR
-        if: always()
-        continue-on-error: true
-        run: gh pr comment ${{ github.event.pull_request.number }} --body-file validation-report.md --edit-last --create-if-none
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
