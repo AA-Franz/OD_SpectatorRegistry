@@ -48,6 +48,12 @@
       "displayName": "procam",
       "author": "higuysimaugust",
       "url": "https://github.com/higuysimaugust/procam"
+    },
+    {
+      "name": "august.matchmaker",
+      "displayName": "Matchmaker",
+      "author": "higuysimaugust",
+      "url": "https://github.com/higuysimaugust/matchmaker"
     }
   ]
 }
